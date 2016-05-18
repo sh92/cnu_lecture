@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.annotation.PostConstruct;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -23,23 +23,87 @@ public class CnuPostController {
 
     @Autowired
     CnuRepository cnuRepository;
+
     //new안했지만 실제 객체 들어있을것임. 안에있는 기능들 사용할 수 있다. 
     
+   
     @RequestMapping("")
     public String index(Model model) {
         List<CnuPost> cnuPostList = cnuRepository.selectCnuPostList();
-        model.addAttribute("cnuPostList",cnuPostList);
-        //여기 
+        model.addAttribute("cnuPostList", cnuPostList);
         return "post/index";
     }
 
-    @RequestMapping("/write")
+    @RequestMapping(value = "/write", method = RequestMethod.GET)
     public String write() {
         return "post/write";
     }
 
+    @RequestMapping(value = "/write", method = RequestMethod.POST)
+    public String doWrite(String title,
+                          String content,
+                          String author,
+                          String password) {
+
+        CnuPost cnuPost = new CnuPost();
+        cnuPost.setTitle(title);
+        cnuPost.setAuthor(author);
+        cnuPost.setPassword(password);
+        cnuPost.setContent(content);
+
+        cnuRepository.insertCnuPost(cnuPost);
+
+        return "redirect:/post";
+    }
+
     @RequestMapping("/view")
-    public String view() {
+    public String view(@RequestParam int postId, Model model) {
+
+        /**
+         * Dummy CnuPost Start
+         *
+         * TODO
+         * post의 detail view 를 담당한 조는 이 dummy 를 삭제하고 자신들이 개발한 코드를 넣어주세요.
+         * 그 외에 삭제/comment 를 담당한 학생분들은 이 dummy 를 이용해서 CnuPost 모델을 가져온다고 생각하고 개발해주세요.
+         */
+        CnuPost cnuPost = new CnuPost();
+        cnuPost.setTitle("Dummy Title");
+        cnuPost.setContent("Dummy content");
+        cnuPost.setAuthor("Dummy Author");
+        cnuPost.setPassword("1111");
+        cnuPost.setCreateTime(new Date());
+        cnuPost.setPostId(postId);
+        /** Dummy CnuPost END **/
+
+        model.addAttribute("cnuPost", cnuPost);
+
         return "post/view";
     }
+
+
+
+    @RequestMapping(value = "/delete", method = RequestMethod.POST)
+    public String delete(int postId, String password) {
+
+        CnuPost cnuPost = new CnuPost();
+        cnuPost.setPassword(password);
+        cnuPost.setPostId(postId);
+        cnuPost.setIsDel(true);
+
+        CnuPost myRepository = cnuRepository.selectCnuPost(postId);
+        if(myRepository == null){
+            return "redirect:/post?emptyPost";
+        }
+
+        String chk_passowrd=myRepository.getPassword();
+
+        if(chk_passowrd.equals(password))
+        {
+            cnuRepository.deleteCnuPost(cnuPost);
+            return "redirect:/post";
+        }
+        return "redirect:/post?incorrectPassword";
+
+    }
+
 }
