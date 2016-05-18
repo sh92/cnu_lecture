@@ -21,8 +21,15 @@ import java.util.List;
 public class CnuPostController {
     @Value("${application.security.salt}") private String securityKey;
 
+    @Autowired
+    CnuRepository cnuRepository;
+    //new안했지만 실제 객체 들어있을것임. 안에있는 기능들 사용할 수 있다. 
+    
     @RequestMapping("")
-    public String index() {
+    public String index(Model model) {
+        List<CnuPost> cnuPostList = cnuRepository.selectCnuPostList();
+        model.addAttribute("cnuPostList",cnuPostList);
+        //여기 
         return "post/index";
     }
 
